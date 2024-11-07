@@ -1,0 +1,9 @@
+torch
+joblib
+pandas
+numpy
+scikit-learn
+matplotlib
+seaborn
+Pillow
+gradio
