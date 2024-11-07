@@ -17,6 +17,32 @@ def app():
     encoders = load_encoder('models/label_encoders.pkl')
     scaler = load_scaler('models/scaler.pkl')
 
+    cluster_plans = {
+    0: "Premium Subscription",
+    1: "Basic Subscription",
+    2: "Family Plan",
+    3: "Small Business Plan",
+    4: "Unlimited Usage Plan",
+    5: "Student Discount Plan",
+    6: "Senior Citizen Plan",
+    7: "Power User Plan"
+    }
+
+    def get_plan_recommendation(cluster):
+        """
+        Given a cluster number, returns the recommended subscription plan.
+        
+        Parameters:
+        cluster (int): The cluster number the user belongs to.
+        
+        Returns:
+        str: The recommended subscription plan.
+        """
+        if cluster in cluster_plans:
+            return cluster_plans[cluster]
+        else:
+            return "No specific plan recommendation available"
+
     def predict(age, gender, location, subscription_length, monthly_bill, avg_internet_usage, num_tickets, avg_talktime, social_class, subscription_type, base_charge):
         data = {
             'Age': [age],
@@ -35,9 +61,11 @@ def app():
         scaled_df = encode_and_scale(df, encoders, scaler)
         group = get_cluster(scaled_df, kmeans_model)
         predicted_group_text = group[0]
+        suggested_plan = get_plan_recommendation(predicted_group_text)
         churn_label = get_churn_label(scaled_df, churn_model)
         predicted_churn_text = 'Yes' if churn_label[0][0] == 1 else 'No'
-        return predicted_group_text, predicted_churn_text
+        
+        return predicted_group_text, predicted_churn_text, suggested_plan
 
     def process_csv(file):
         df = pd.read_csv(file)
@@ -82,9 +110,10 @@ def app():
                 gr.Markdown("## Results")
                 predicted_group = gr.Text(label="Predicted Group")
                 predicted_churn = gr.Text(label="Predicted Churn")
+                suggested_plan = gr.Text(label="Suggested Plan")
 
             predict_button = gr.Button("Predict")
-            predict_button.click(predict, inputs=[age, gender, location, subscription_length, monthly_bill, avg_internet_usage, num_tickets, avg_talktime, social_class, subscription_type, base_charge], outputs=[predicted_group, predicted_churn])
+            predict_button.click(predict, inputs=[age, gender, location, subscription_length, monthly_bill, avg_internet_usage, num_tickets, avg_talktime, social_class, subscription_type, base_charge], outputs=[predicted_group, predicted_churn, suggested_plan])
 
         with gr.Tab("Upload CSV"):
             with gr.Group():
